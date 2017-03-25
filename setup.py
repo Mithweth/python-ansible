@@ -6,5 +6,6 @@ setup(
     author = "Jean-Baptiste LANGLOIS",
     author_email = jeanbaptiste.langlois@gmail.com",
     license = "GPL",
+    test_suite = "tests",
     packages=['pyansible']
 )
