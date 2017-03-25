@@ -9,20 +9,20 @@ import os
 class Play(object):
     def __init__(self, inventory, host, basedir):
         """Creation du tqm"""
-        self._tqm = None
-        self.__ssh_key_file = None
+        self._tqm = TaskQueueManager(
+                    inventory=inventory,
+                    variable_manager=variable_manager,
+                    loader=loader,
+                    options=options,
+                    passwords=passwords
+                )
+
         self.errors = None
         self.callback = None
 
-    def __del__(self):
-        if self.__ssh_key_file is not None:
-           if os.path.isfile(self.__ssh_key_file):
-              os.remove(self.__ssh_key_file)
-
     def set_ssh_key(key):
         """blabla cle"""
-        self._tqm._variable_manager.extra_vars['ansible_private_ssh_key_file'] = key
-        self.__ssh_key_file = key
+        self._tqm._options.private_key_file = os.path.abspath(os.path.expanduser(key))
 
     def set_vault_password_file(filename):
         self._tqm._loader.set_vault_password(filename)
