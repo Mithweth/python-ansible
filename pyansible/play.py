@@ -18,7 +18,6 @@ class Play(object):
                 )
 
         self.errors = None
-        self.callback = None
 
     def set_ssh_key(key):
         """blabla cle"""
@@ -27,6 +26,9 @@ class Play(object):
     def set_vault_password_file(filename):
         self._tqm._loader.set_vault_password(filename)
 
+    def set_callback(callback):
+        self._tqm._stdout_callback = callback
+        
     def _play(self, play):
         try:
             self._tqm.run(play)
