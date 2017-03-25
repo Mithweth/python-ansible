@@ -14,7 +14,7 @@ class Play(object):
                     variable_manager=variable_manager,
                     loader=loader,
                     options=options,
-                    passwords=passwords
+                    passwords=None
                 )
 
         self.errors = None
