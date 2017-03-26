@@ -16,11 +16,9 @@ class Play(object):
                     options=options,
                     passwords=None
                 )
-
         self.errors = None
 
     def set_ssh_key(key):
-        """blabla cle"""
         self._tqm._options.private_key_file = os.path.abspath(os.path.expanduser(key))
 
     def set_vault_password_file(filename):
@@ -30,6 +28,7 @@ class Play(object):
         self._tqm._stdout_callback = callback
         
     def _play(self, play):
+        self.errors = None
         try:
             self._tqm.run(play)
         except (AnsibleError, AnsibleParserError) as e:
