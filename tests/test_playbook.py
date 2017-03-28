@@ -26,11 +26,11 @@ class TestPlaybook(unittest.TestCase):
             pyansible.Playbook('test.yml', vault_password_file='foobar')
 
     def test_no_ssh_key(self):
-        t=pyansible.Playbook('test.yml')
+        t = pyansible.Playbook('test.yml')
         self.assertIsNone(t._tqm._options.private_key_file)
 
     def test_ssh_key(self):
-        t=pyansible.Playbook('test.yml')
+        t = pyansible.Playbook('test.yml')
         t.set_ssh_key('ssh.key')
         self.assertIn('ssh.key', t._tqm._options.private_key_file)
 
@@ -63,7 +63,7 @@ class TestPlaybook(unittest.TestCase):
         m = mock.Mock()
         m.return_value = True
         m2 = mock.Mock()
-        m2.return_value.get_plays.return_value = [1,2]
+        m2.return_value.get_plays.return_value = [1, 2]
         with mock.patch(
                 'ansible.playbook.Playbook.load',
                 m2, create=True):

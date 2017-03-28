@@ -38,18 +38,19 @@ class TestTask(unittest.TestCase):
             pyansible.Role('test-role', vault_password_file='foobar')
 
     def test_no_ssh_key(self):
-        t=pyansible.Role('test-role')
+        t = pyansible.Role('test-role')
         self.assertIsNone(t._tqm._options.private_key_file)
 
     def test_ssh_key(self):
-        t=pyansible.Role('test-role')
+        t = pyansible.Role('test-role')
         t.set_ssh_key('ssh.key')
         self.assertIn('ssh.key', t._tqm._options.private_key_file)
 
     def test_wrong_module_path(self):
         t = pyansible.Role('test-role', basedir='wrong/path')
         self.assertFalse(t.run())
-        self.assertIn("the role 'test-role' was not found in wrong/path/roles", t.runtime_errors)
+        self.assertIn("the role 'test-role' was not found in wrong/path/roles",
+                      t.runtime_errors)
 
     def test_run_mock_ok(self):
         m = mock.Mock()
@@ -71,8 +72,7 @@ class TestTask(unittest.TestCase):
         m.side_effect = AnsibleError('Problem!')
         with mock.patch(
                 'ansible.executor.task_queue_manager.TaskQueueManager.run',
-                m,
-                create=True):
+                m, create=True):
             t = pyansible.Role('test-role')
             self.assertFalse(t.run())
             self.assertIsNotNone(t.runtime_errors)

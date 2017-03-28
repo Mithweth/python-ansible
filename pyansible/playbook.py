@@ -1,9 +1,9 @@
 import ansible.playbook
-from ansible.errors import AnsibleError
 from ansible.errors import AnsibleError, AnsibleParserError
 import play
 import json
 import os
+
 
 class Playbook(play.Play):
     def __init__(self, playbook, inventory='localhost', **options):
@@ -14,7 +14,6 @@ class Playbook(play.Play):
             **options)
         self._tqm._inventory.set_playbook_basedir(
             os.path.realpath(os.path.dirname(self.playbook)))
-
 
     def get_command(self):
         if os.path.isfile(self._tqm._inventory.host_list):
@@ -28,7 +27,7 @@ class Playbook(play.Play):
         for key in ('become_method', 'become_user', 'tags', 'forks'):
             if self._tqm._options.__dict__[key]:
                 opts += '--%s=%s ' % (
-                    key.replace('_','-'), self._tqm._options.__dict__[key])
+                    key.replace('_', '-'), self._tqm._options.__dict__[key])
         for key in ('become', 'check'):
             if str(self._tqm._options.__dict__[key]) in ('True', 'yes'):
                 opts += '--%s ' % key
@@ -46,7 +45,8 @@ class Playbook(play.Play):
     def run(self):
         success = True
         try:
-            pb = ansible.playbook.Playbook.load(self.playbook,
+            pb = ansible.playbook.Playbook.load(
+                self.playbook,
                 loader=self._tqm._loader,
                 variable_manager=self._tqm._variable_manager)
             self._tqm.load_callbacks()
@@ -55,16 +55,10 @@ class Playbook(play.Play):
         except (AnsibleParserError, AnsibleError) as e:
             self.runtime_errors = e.message
             return False
-        for play in plays:
-            if not self._play(play):
+        for p in plays:
+            if not self._play(p):
                 success = False
                 break
-        else: 
-            hosts = sorted(self._tqm._stats.processed.keys())
-            for h in hosts:
-                t = self._tqm._stats.summarize(h)
-                if t['unreachable'] > 0 or t['failures'] > 0:
-                    success = False
 
         self._tqm.send_callback('v2_playbook_on_stats', self._tqm._stats)
         self._tqm.cleanup()

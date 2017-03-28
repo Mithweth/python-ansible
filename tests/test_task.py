@@ -38,11 +38,11 @@ class TestTask(unittest.TestCase):
             pyansible.Task({'command': 'ls'}, vault_password_file='foobar')
 
     def test_no_ssh_key(self):
-        t=pyansible.Task({'command': 'ls'})
+        t = pyansible.Task({'command': 'ls'})
         self.assertIsNone(t._tqm._options.private_key_file)
 
     def test_ssh_key(self):
-        t=pyansible.Task({'command': 'ls'})
+        t = pyansible.Task({'command': 'ls'})
         t.set_ssh_key('ssh.key')
         self.assertIn('ssh.key', t._tqm._options.private_key_file)
 
@@ -51,8 +51,7 @@ class TestTask(unittest.TestCase):
         m.return_value = True
         with mock.patch(
                 'ansible.executor.task_queue_manager.TaskQueueManager.run',
-                m,
-                create=True):
+                m, create=True):
             t = pyansible.Task({'command': 'ls'})
             self.assertTrue(t.run())
             self.assertIsNone(t.runtime_errors)
@@ -62,8 +61,7 @@ class TestTask(unittest.TestCase):
         m.side_effect = AnsibleError('Problem!')
         with mock.patch(
                 'ansible.executor.task_queue_manager.TaskQueueManager.run',
-                m,
-                create=True):
+                m, create=True):
             t = pyansible.Task({'command': 'ls'})
             self.assertFalse(t.run())
             self.assertIsNotNone(t.runtime_errors)

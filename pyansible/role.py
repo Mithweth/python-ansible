@@ -1,10 +1,4 @@
-import ansible.playbook.play
-from ansible.inventory.host import Host
-from ansible.inventory.group import Group
-from ansible.errors import AnsibleError, AnsibleParserError
 import task
-import os
-import yaml
 
 
 class Role(task.Task):
@@ -14,4 +8,3 @@ class Role(task.Task):
         super(Role, self).__init__(
             roles, inventory, host,
             group, basedir, **options)
-

@@ -5,20 +5,12 @@ from ansible.errors import AnsibleError, AnsibleParserError
 from ansible.executor.task_queue_manager import TaskQueueManager
 import os
 
+
 class Options(object):
-    def __init__(self, become=None,
-                       become_method=None,
-                       become_user=None,
-                       check=None,
-                       connection=None,
-                       forks=None,
-                       module_path=None,
-                       private_key_file=None,
-                       remote_user=None,
-                       tags=None,
-                       skip_tags=None,
-                       timeout=None,
-                       verbosity=None):
+    def __init__(self, become=None, become_method=None, become_user=None,
+                 check=None, connection=None, forks=None, module_path=None,
+                 private_key_file=None, remote_user=None, tags=None,
+                 skip_tags=None, timeout=None, verbosity=None):
         self.become_method = become_method
         self.become = become
         self.become_user = become_user
@@ -36,9 +28,11 @@ class Options(object):
 
 class Play(object):
     def __init__(self, host_file, basedir=None, tags=None,
-        become_method='sudo', become='no', become_user='root',
-        check=False, forks=100, remote_user='root', verbosity=None,
-        extra_vars={}, vault_password_file=None, connection=None):
+                 become_method='sudo', become='no', become_user='root',
+                 check=False, forks=100, remote_user='root', verbosity=None,
+                 extra_vars={}, vault_password_file=None, connection=None):
+        self.succeeded_hosts = []
+        self.failed_hosts = []
         if ',' not in host_file and not os.path.isfile(host_file):
             host_file += ','
 
@@ -65,21 +59,21 @@ class Play(object):
             variable_manager.extra_vars = extra_vars
         variable_manager.set_inventory(inventory)
 
-        variable_manager.set_inventory(inventory)
-
-
-        self._tqm = TaskQueueManager(
-                    inventory=inventory,
-                    variable_manager=variable_manager,
-                    loader=loader,
-                    options=Options(
-                        connection=connection, module_path=module_path,
-                        become_user=become_user, become_method=become_method,
-                        become=become, check=check, forks=forks, tags=tags,
-                        remote_user=remote_user, verbosity=verbosity
-                    ),
-                    passwords=None
-                )
+        self._tqm = TaskQueueManager(inventory=inventory,
+                                     variable_manager=variable_manager,
+                                     loader=loader,
+                                     passwords=None,
+                                     options=Options(
+                                         connection=connection,
+                                         module_path=module_path,
+                                         become_user=become_user,
+                                         become_method=become_method,
+                                         become=become,
+                                         check=check,
+                                         forks=forks,
+                                         tags=tags,
+                                         remote_user=remote_user,
+                                         verbosity=verbosity))
         self.runtime_errors = None
 
     def set_ssh_key(self, key):
@@ -88,7 +82,7 @@ class Play(object):
 
     def set_callback(self, callback):
         self._tqm._stdout_callback = callback
-        
+
     def _play(self, play):
         self.runtime_errors = None
         try:
@@ -96,4 +90,14 @@ class Play(object):
         except (AnsibleError, AnsibleParserError) as e:
             self.runtime_errors = e.message
             return False
+        hosts = sorted(self._tqm._stats.processed.keys())
+        for h in hosts:
+            t = self._tqm._stats.summarize(h)
+            if t['unreachable'] > 0 or t['failures'] > 0:
+                if h not in self.failed_hosts:
+                    self.failed_hosts.append(h)
+                return False
+            else:
+                if h not in self.succeeded_hosts:
+                    self.succeeded_hosts.append(h)
         return True
