@@ -67,5 +67,6 @@ class Task(play.Play):
             self.runtime_errors = e.message
             return False
         success = self._play(play)
+        self._tqm.send_callback('v2_playbook_on_stats', self._tqm._stats)
         self._tqm.cleanup()
         return success
