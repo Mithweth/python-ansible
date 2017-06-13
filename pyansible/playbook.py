@@ -1,6 +1,6 @@
 import ansible.playbook
 from ansible.errors import AnsibleError, AnsibleParserError
-import play
+from . import play
 import json
 import os
 

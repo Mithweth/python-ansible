@@ -2,7 +2,7 @@ import ansible.playbook.play
 from ansible.inventory.host import Host
 from ansible.inventory.group import Group
 from ansible.errors import AnsibleError, AnsibleParserError
-import play
+from . import play
 import os
 import yaml
 

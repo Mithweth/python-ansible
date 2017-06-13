@@ -1,4 +1,4 @@
-import task
+from . import task
 
 
 class Role(task.Task):

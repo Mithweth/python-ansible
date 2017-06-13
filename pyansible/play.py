@@ -4,6 +4,7 @@ from ansible.inventory import Inventory
 from ansible.errors import AnsibleError, AnsibleParserError
 from ansible.executor.task_queue_manager import TaskQueueManager
 import os
+import subprocess
 
 
 class Options(object):
@@ -38,7 +39,30 @@ class Play(object):
 
         loader = DataLoader()
         if vault_password_file is not None:
-            loader.read_vault_password_file(vault_password_file)
+            this_path = os.path.realpath(os.path.expanduser(vault_password_file))
+            if not os.path.exists(this_path):
+                raise AnsibleError("The vault password file %s was not found" % this_path)
+
+            if loader.is_executable(this_path):
+                try:
+                    p = subprocess.Popen(this_path, stdout=subprocess.PIPE)
+                except OSError as e:
+                    raise AnsibleError("Problem running vault password script %s." % (' '.join(this_path)))
+                stdout, stderr = p.communicate()
+                try:
+                    loader.set_vault_password(stdout.strip('\r\n'))
+                except TypeError:
+                    loader.set_vault_password(stdout.decode('utf-8').strip('\r\n'))
+            else:
+                try:
+                    f = open(this_path, "rb")
+                    try:
+                        loader.set_vault_password(f.read().strip())
+                    except TypeError:
+                        loader.set_vault_password(f.read().decode('utf-8').strip())
+                    f.close()
+                except (OSError, IOError) as e:
+                    raise AnsibleError("Could not read vault password file %s: %s" % (this_path, e))
 
         if isinstance(tags, list):
             tags = ','.join(tags)
