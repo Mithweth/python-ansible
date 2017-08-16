@@ -25,15 +25,16 @@ class Playbook(play.Play):
             ]) + ','
         opts = "--inventory-file=%s " % inventory
         for key in ('become_method', 'become_user', 'tags', 'forks'):
-            if self._tqm._options.__dict__[key]:
+            if key in self._tqm._options.__dict__:
                 opts += '--%s=%s ' % (
                     key.replace('_', '-'), self._tqm._options.__dict__[key])
         for key in ('become', 'check'):
-            if str(self._tqm._options.__dict__[key]) in ('True', 'yes'):
+            if key in self._tqm._options.__dict__ and \
+                    str(self._tqm._options.__dict__[key]) in ('True', 'yes'):
                 opts += '--%s ' % key
-        if self._tqm._options.remote_user:
+        if 'remote_user' in self._tqm._options.__dict__:
             opts += '--user=%s ' % self._tqm._options.remote_user
-        if self._tqm._options.verbosity:
+        if 'verbosity' in self._tqm._options.__dict__:
             opts += '-' + 'v' * self._tqm._options.verbosity
         if len(self._tqm._variable_manager.extra_vars) > 0:
             opts += "--extra-vars '%s' " % \
