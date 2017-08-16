@@ -8,23 +8,10 @@ import subprocess
 
 
 class Options(object):
-    def __init__(self, become=None, become_method=None, become_user=None,
-                 check=None, connection=None, forks=None, module_path=None,
-                 private_key_file=None, remote_user=None, tags=None,
-                 skip_tags=None, timeout=None, verbosity=None):
-        self.become_method = become_method
-        self.become = become
-        self.become_user = become_user
-        self.check = check
-        self.connection = connection
-        self.forks = forks
-        self.module_path = module_path
-        self.private_key_file = private_key_file
-        self.remote_user = remote_user
-        self.skip_tags = skip_tags
-        self.tags = tags
-        self.timeout = timeout
-        self.verbosity = verbosity
+    def __init__(self, **kwargs):
+        for k, v in kwargs.items():
+            if v is not None:
+                setattr(self, k, v)
 
 
 class Play(object):
