@@ -1,8 +1,9 @@
 from ansible.parsing.dataloader import DataLoader
 from ansible.vars import VariableManager
 from ansible.inventory import Inventory
-from ansible.errors import AnsibleError, AnsibleParserError
+from ansible.errors import AnsibleError, AnsibleParserError, AnsibleFileNotFound
 from ansible.executor.task_queue_manager import TaskQueueManager
+from ansible.plugins import module_utils_loader
 import os
 import subprocess
 
@@ -28,7 +29,7 @@ class Play(object):
         if vault_password_file is not None:
             this_path = os.path.realpath(os.path.expanduser(vault_password_file))
             if not os.path.exists(this_path):
-                raise AnsibleError("The vault password file %s was not found" % this_path)
+                raise AnsibleFileNotFound("The vault password file %s was not found" % this_path)
 
             if loader.is_executable(this_path):
                 try:
@@ -56,8 +57,9 @@ class Play(object):
         if connection is None:
             connection = 'local' if host_file == 'localhost,' else 'smart'
         if basedir:
-            module_path = basedir + os.sep + 'library'
+            module_path = os.path.join(basedir, 'library')
             loader.set_basedir(basedir)
+            module_utils_loader._extra_dirs.append(os.path.join(basedir, 'module_utils'))
         else:
             module_path = None
 
@@ -70,21 +72,24 @@ class Play(object):
             variable_manager.extra_vars = extra_vars
         variable_manager.set_inventory(inventory)
 
+        options=Options(
+            connection=connection,
+            module_path=module_path,
+            become_user=become_user,
+            become_method=become_method,
+            become=become,
+            check=check,
+            forks=forks,
+            tags=tags,
+            remote_user=remote_user,
+            verbosity=verbosity)
+        options.module_path = module_path
+        options.private_key_file = None
         self._tqm = TaskQueueManager(inventory=inventory,
                                      variable_manager=variable_manager,
                                      loader=loader,
                                      passwords=None,
-                                     options=Options(
-                                         connection=connection,
-                                         module_path=module_path,
-                                         become_user=become_user,
-                                         become_method=become_method,
-                                         become=become,
-                                         check=check,
-                                         forks=forks,
-                                         tags=tags,
-                                         remote_user=remote_user,
-                                         verbosity=verbosity))
+                                     options=options)
         self.runtime_errors = None
 
     def set_ssh_key(self, key):
