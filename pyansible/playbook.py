@@ -8,7 +8,7 @@ import os
 class Playbook(play.Play):
     def __init__(self, playbook, inventory='localhost', **options):
         self.playbook = playbook
-        super(self.__class__, self).__init__(
+        super(Playbook, self).__init__(
             inventory,
             basedir=os.path.dirname(self.playbook),
             **options)

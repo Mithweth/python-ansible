@@ -4,8 +4,10 @@ from ansible.inventory import Inventory
 from ansible.errors import AnsibleError, AnsibleParserError, AnsibleFileNotFound
 from ansible.executor.task_queue_manager import TaskQueueManager
 from ansible.plugins import module_utils_loader
+import ansible.constants as C
 import os
 import subprocess
+import shutil
 
 
 class Options(object):
@@ -91,6 +93,9 @@ class Play(object):
                                      passwords=None,
                                      options=options)
         self.runtime_errors = None
+
+    def __del__(self):
+        shutil.rmtree(C.DEFAULT_LOCAL_TMP, True)
 
     def set_ssh_key(self, key):
         self._tqm._options.private_key_file = os.path.abspath(

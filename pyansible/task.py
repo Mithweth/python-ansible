@@ -22,10 +22,7 @@ class Task(play.Play):
             options['connection'] = ('local'
                                      if group == 'localhost'
                                      else 'smart')
-        super(Task, self).__init__(
-            inventory,
-            basedir,
-            **options)
+        super(Task, self).__init__(inventory, basedir, **options)
         if os.path.isfile(inventory):
             if group not in self._tqm._inventory.list_groups():
                 new_group = Group(group)
