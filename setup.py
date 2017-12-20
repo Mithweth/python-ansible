@@ -3,10 +3,10 @@ from setuptools import setup
 
 setup(
     name="python-ansible",
-    version="0.0.4",
+    version="0.0.5",
     description="Ansible executor module for Python",
     author="Jean-Baptiste LANGLOIS",
-    author_email="JLANGLOI@bouyguestelecom.fr",
+    author_email="jeanbaptiste.langlois@gmail.com",
     long_description="Module to easily execute Ansible Task and Playbooks",
     license="GPL",
     test_suite="tests",

@@ -19,19 +19,19 @@ class TestTask(unittest.TestCase):
 
     def test_name(self):
         t = pyansible.Task({'command': 'ls'})
-        self.assertEqual(t.name(), 'tasks')
+        self.assertEqual(t.name, 'tasks')
 
     def test_local(self):
         t = pyansible.Task({'command': 'ls'})
-        self.assertEqual(t.get_play()['connection'], 'local')
-        self.assertEqual(t.get_play()['hosts'], 'localhost')
-        self.assertIn('tasks', t.get_play())
+        self.assertEqual(t.play['connection'], 'local')
+        self.assertEqual(t.play['hosts'], 'localhost')
+        self.assertIn('tasks', t.play)
 
     def test_remote(self):
         t = pyansible.Task({'command': 'ls'}, host='192.168.0.1')
-        self.assertEqual(t.get_play()['connection'], 'smart')
-        self.assertEqual(t.get_play()['hosts'], 'all')
-        self.assertIn('tasks', t.get_play())
+        self.assertEqual(t.play['connection'], 'smart')
+        self.assertEqual(t.play['hosts'], 'all')
+        self.assertIn('tasks', t.play)
 
     def test_wrong_vault_file(self):
         with self.assertRaises(AnsibleFileNotFound):

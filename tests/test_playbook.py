@@ -15,7 +15,7 @@ import pyansible # noqa
 class TestPlaybook(unittest.TestCase):
     def test_local_if_no_args(self):
         t = pyansible.Playbook('toto.yml')
-        self.assertIn('inventory-file=localhost,', t.get_command())
+        self.assertIn('inventory-file=localhost,', t.command)
 
     def test_no_playbook(self):
         with self.assertRaises(TypeError):

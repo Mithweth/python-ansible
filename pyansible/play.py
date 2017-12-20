@@ -1,12 +1,10 @@
+import compat_utils
+
 from ansible.parsing.dataloader import DataLoader
-from ansible.vars import VariableManager
-from ansible.inventory import Inventory
 from ansible.errors import AnsibleError, AnsibleParserError, AnsibleFileNotFound
 from ansible.executor.task_queue_manager import TaskQueueManager
-from ansible.plugins import module_utils_loader
 import ansible.constants as C
 import os
-import subprocess
 import shutil
 
 
@@ -28,66 +26,36 @@ class Play(object):
             host_file += ','
 
         loader = DataLoader()
-        if vault_password_file is not None:
-            this_path = os.path.realpath(os.path.expanduser(vault_password_file))
-            if not os.path.exists(this_path):
-                raise AnsibleFileNotFound("The vault password file %s was not found" % this_path)
 
-            if loader.is_executable(this_path):
-                try:
-                    p = subprocess.Popen(this_path, stdout=subprocess.PIPE)
-                except OSError as e:
-                    raise AnsibleError("Problem running vault password script %s." % (' '.join(this_path)))
-                stdout, stderr = p.communicate()
-                try:
-                    loader.set_vault_password(stdout.strip('\r\n'))
-                except TypeError:
-                    loader.set_vault_password(stdout.decode('utf-8').strip('\r\n'))
-            else:
-                try:
-                    f = open(this_path, "rb")
-                    try:
-                        loader.set_vault_password(f.read().strip())
-                    except TypeError:
-                        loader.set_vault_password(f.read().decode('utf-8').strip())
-                    f.close()
-                except (OSError, IOError) as e:
-                    raise AnsibleError("Could not read vault password file %s: %s" % (this_path, e))
+        if vault_password_file is not None:
+            compat_utils.set_vault_password(loader, vault_password_file)
+
+        variable_manager = compat_utils.create_variable_manager(loader, host_file)
+
+        if extra_vars:
+            variable_manager.extra_vars = extra_vars
 
         if isinstance(tags, list):
             tags = ','.join(tags)
         if connection is None:
             connection = 'local' if host_file == 'localhost,' else 'smart'
         if basedir:
-            module_path = os.path.join(basedir, 'library')
-            loader.set_basedir(basedir)
-            module_utils_loader._extra_dirs.append(os.path.join(basedir, 'module_utils'))
-        else:
-            module_path = None
-
-        variable_manager = VariableManager()
-
-        inventory = Inventory(loader=loader,
-                              variable_manager=variable_manager,
-                              host_list=host_file)
-        if extra_vars:
-            variable_manager.extra_vars = extra_vars
-        variable_manager.set_inventory(inventory)
+            compat_utils.set_basedir(loader, basedir)
 
         options=Options(
             connection=connection,
-            module_path=module_path,
             become_user=become_user,
             become_method=become_method,
             become=become,
             check=check,
             forks=forks,
+            diff=False,
             tags=tags,
             remote_user=remote_user,
             verbosity=verbosity)
-        options.module_path = module_path
         options.private_key_file = None
-        self._tqm = TaskQueueManager(inventory=inventory,
+        options.module_path = None
+        self._tqm = TaskQueueManager(inventory=variable_manager._inventory,
                                      variable_manager=variable_manager,
                                      loader=loader,
                                      passwords=None,
