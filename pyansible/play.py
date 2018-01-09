@@ -65,15 +65,30 @@ class Play(object):
     def __del__(self):
         shutil.rmtree(C.DEFAULT_LOCAL_TMP, True)
 
-    def set_ssh_key(self, key):
+    @property
+    def ssh_key(self):
+        return self._tqm._options.private_key_file
+
+    @ssh_key.setter
+    def ssh_key(self, key):
         self._tqm._options.private_key_file = os.path.abspath(
             os.path.expanduser(key))
 
-    def set_callback(self, callback):
-        self._tqm._stdout_callback = callback
+    @property
+    def callback(self):
+        return self._tqm._stdout_callback
+
+    @callback.setter
+    def callback(self, _cb):
+        self._tqm._stdout_callback = _cb
 
     def _play(self, play):
         self.runtime_errors = None
+        used_hosts = self._tqm._inventory.get_hosts(play.hosts)
+        if len(used_hosts) == 0:
+              self._tqm.send_callback('v2_playbook_on_play_start', play)
+              self._tqm.send_callback('v2_playbook_on_no_hosts_matched')
+              return False
         try:
             self._tqm.run(play)
         except (AnsibleError, AnsibleParserError) as e:
