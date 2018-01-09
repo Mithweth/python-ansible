@@ -31,7 +31,7 @@ class TestPlaybook(unittest.TestCase):
 
     def test_ssh_key(self):
         t = pyansible.Playbook('test.yml')
-        t.set_ssh_key('ssh.key')
+        t.ssh_key = 'ssh.key'
         self.assertIn('ssh.key', t._tqm._options.private_key_file)
 
     def test_tags(self):
@@ -63,7 +63,7 @@ class TestPlaybook(unittest.TestCase):
         m = mock.Mock()
         m.return_value = True
         m2 = mock.Mock()
-        m2.return_value.get_plays.return_value = [1, 2]
+        m2.return_value.get_plays.return_value = [mock.MagicMock(hosts='localhost'), mock.MagicMock(hosts='localhost')]
         with mock.patch(
                 'ansible.playbook.Playbook.load',
                 m2, create=True):
@@ -84,3 +84,19 @@ class TestPlaybook(unittest.TestCase):
             t = pyansible.Playbook('toto.yml')
             self.assertFalse(t.run())
             self.assertIsNotNone(t.runtime_errors)
+
+
+if __name__ == '__main__':
+    import logging
+    v_loglevel = "DEBUG"
+    v_loglevel = "WARN"
+    logger = logging.getLogger()
+    logger.setLevel(getattr(logging, v_loglevel))
+    formatter = logging.Formatter(
+        "%(asctime)s %(levelname)-s %(funcName)s:%(lineno)d %(message)s")
+
+    handler_console = logging.StreamHandler()
+    handler_console.setFormatter(formatter)
+    handler_console.setLevel(getattr(logging, v_loglevel))
+    logger.addHandler(handler_console)
+    unittest.main()
