@@ -84,13 +84,14 @@ class Play(object):
 
     def _play(self, play):
         self.runtime_errors = None
-        used_hosts = self._tqm._inventory.get_hosts(play.hosts)
+        new_play = compat_utils.update_vars(self._tqm, play)
+        used_hosts = self._tqm._inventory.get_hosts(new_play.hosts)
         if len(used_hosts) == 0:
-              self._tqm.send_callback('v2_playbook_on_play_start', play)
+              self._tqm.send_callback('v2_playbook_on_play_start', new_play)
               self._tqm.send_callback('v2_playbook_on_no_hosts_matched')
               return False
         try:
-            self._tqm.run(play)
+            self._tqm.run(new_play)
         except (AnsibleError, AnsibleParserError) as e:
             self.runtime_errors = e.message
             return False

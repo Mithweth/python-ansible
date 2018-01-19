@@ -2,6 +2,7 @@ from collections import namedtuple
 import os
 import ansible.release
 import subprocess
+from ansible.template import Templar
 from ansible.errors import AnsibleFileNotFound, AnsibleError
 version_info = namedtuple('version_info',
                           ['major', 'minor', 'micro', 'releaselevel'])(*[
@@ -9,6 +10,17 @@ version_info = namedtuple('version_info',
 
 if version_info < (2, 0):
     raise ImportError('module for ansible 2.x only')
+
+
+def update_vars(tqm, play):
+    if version_info < (2, 4):
+        all_vars = tqm._variable_manager.get_vars(loader=tqm._loader, play=play)
+    else:
+        all_vars = tqm._variable_manager.get_vars(play=play)
+    templar = Templar(loader=tqm._loader, variables=all_vars)
+    new_play = play.copy()
+    new_play.post_validate(templar)
+    return new_play
 
 
 def add_host(inventory, group, host):

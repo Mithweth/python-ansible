@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name="python-ansible",
-    version="0.0.6",
+    version="0.0.7",
     description="Ansible executor module for Python",
     author="Jean-Baptiste LANGLOIS",
     author_email="jeanbaptiste.langlois@gmail.com",
