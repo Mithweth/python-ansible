@@ -56,7 +56,8 @@ class TestTask(unittest.TestCase):
     def test_run_mock_no_hosts(self):
         m = mock.Mock()
         m2 = mock.Mock()
-        m.return_value = mock.MagicMock(hosts='toto')
+        from ansible.playbook.play import Play
+        m.return_value = Play().load({'hosts':'toto'})
         m2.return_value = True
         with mock.patch(
                 'ansible.playbook.play.Play.load',
@@ -71,14 +72,11 @@ class TestTask(unittest.TestCase):
     def test_run_mock_ok(self):
         m = mock.Mock()
         m2 = mock.Mock()
-        m.return_value = mock.MagicMock(hosts='localhost')
+        from ansible.playbook.play import Play
+        m.return_value = Play().load({'hosts':'localhost'})
         m2.return_value = True
-        with mock.patch(
-                'ansible.playbook.play.Play.load',
-                m, create=True):
-            with mock.patch(
-                    'ansible.executor.task_queue_manager.TaskQueueManager.run',
-                    m2, create=True):
+        with mock.patch('ansible.playbook.play.Play.load', m, create=True):
+            with mock.patch('ansible.executor.task_queue_manager.TaskQueueManager.run', m2, create=True):
                 t = pyansible.Role('test-role')
                 self.assertTrue(t.run())
                 self.assertIsNone(t.runtime_errors)
@@ -86,24 +84,19 @@ class TestTask(unittest.TestCase):
     def test_run_mock_ko(self):
         m = mock.Mock()
         m.side_effect = AnsibleError('Problem!')
-        with mock.patch(
-                'ansible.executor.task_queue_manager.TaskQueueManager.run',
-                m, create=True):
+        with mock.patch('ansible.executor.task_queue_manager.TaskQueueManager.run', m, create=True):
             t = pyansible.Role('test-role')
             self.assertFalse(t.run())
             self.assertIsNotNone(t.runtime_errors)
 
 if __name__ == '__main__':
     import logging
-    v_loglevel = "DEBUG"
-    v_loglevel = "WARN"
     logger = logging.getLogger()
-    logger.setLevel(getattr(logging, v_loglevel))
-    formatter = logging.Formatter(
-        "%(asctime)s %(levelname)-s %(funcName)s:%(lineno)d %(message)s")
-
+    logger.setLevel(logging.DEBUG)
+    formatter = logging.Formatter("%(asctime)s %(levelname)-s %(funcName)s:%(lineno)d %(message)s")
     handler_console = logging.StreamHandler()
     handler_console.setFormatter(formatter)
-    handler_console.setLevel(getattr(logging, v_loglevel))
+    handler_console.setLevel(logging.DEBUG)
     logger.addHandler(handler_console)
     unittest.main()
+

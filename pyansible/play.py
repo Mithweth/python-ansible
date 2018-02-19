@@ -62,9 +62,6 @@ class Play(object):
                                      options=options)
         self.runtime_errors = None
 
-    def __del__(self):
-        shutil.rmtree(C.DEFAULT_LOCAL_TMP, True)
-
     @property
     def ssh_key(self):
         return self._tqm._options.private_key_file
@@ -84,6 +81,13 @@ class Play(object):
 
     def _play(self, play):
         self.runtime_errors = None
+        if self._tqm._terminated:
+            self._tqm = TaskQueueManager(
+                inventory=self._tqm._variable_manager._inventory,
+                variable_manager=self._tqm._variable_manager,
+                loader=self._tqm._loader,
+                passwords=None,
+                options=self._tqm._options)
         new_play = compat_utils.update_vars(self._tqm, play)
         used_hosts = self._tqm._inventory.get_hosts(new_play.hosts)
         if len(used_hosts) == 0:
@@ -95,6 +99,8 @@ class Play(object):
         except (AnsibleError, AnsibleParserError) as e:
             self.runtime_errors = e.message
             return False
+        finally:
+            shutil.rmtree(C.DEFAULT_LOCAL_TMP, True)
         hosts = sorted(self._tqm._stats.processed.keys())
         for h in hosts:
             t = self._tqm._stats.summarize(h)

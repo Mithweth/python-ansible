@@ -37,6 +37,11 @@ class TestTask(unittest.TestCase):
         with self.assertRaises(AnsibleFileNotFound):
             pyansible.Task({'command': 'ls'}, vault_password_file='foobar')
 
+    def test_extra_vars(self):
+        t = pyansible.Task({'command': 'ls'}, extra_vars={'toto': 'tata'})
+        self.assertIn('vars', t.play)
+        self.assertEquals({'toto': 'tata'}, t.play['vars'])
+
     def test_no_ssh_key(self):
         t = pyansible.Task({'command': 'ls'})
         self.assertIsNone(t._tqm._options.private_key_file)
@@ -46,42 +51,25 @@ class TestTask(unittest.TestCase):
         t.ssh_key = 'ssh.key'
         self.assertIn('ssh.key', t._tqm._options.private_key_file)
 
-    def test_run_mock_ok(self):
-        m = mock.Mock()
-        m.return_value = True
-        with mock.patch(
-                'ansible.executor.task_queue_manager.TaskQueueManager.run',
-                m,
-                create=True):
-            t = pyansible.Task([{'command': 'ls'},])
-            result = t.run()
-            self.assertTrue(
-                result,
-                msg="run failed runtime_error:%s" % t.runtime_errors)
-            self.assertIsNone(t.runtime_errors)
+    def test_run_ok(self):
+        t = pyansible.Task([{'command': 'ls'},])
+        self.assertTrue(t.run())
+        self.assertIsNone(t.runtime_errors)
 
     def test_run_mock_ko(self):
-        m = mock.Mock()
-        m.side_effect = AnsibleError('Problem!')
-        with mock.patch(
-                'ansible.executor.task_queue_manager.TaskQueueManager.run',
-                m, create=True):
-            t = pyansible.Task({'command': 'ls'})
-            self.assertFalse(t.run())
-            self.assertIsNotNone(t.runtime_errors)
-
+        t = pyansible.Task({'command': 'ls'})
+        t._tqm._stats.increment('failures', 'localhost')
+        self.assertFalse(t.run())
 
 if __name__ == '__main__':
     import logging
-    v_loglevel = "DEBUG"
-    v_loglevel = "WARN"
     logger = logging.getLogger()
-    logger.setLevel(getattr(logging, v_loglevel))
+    logger.setLevel(logging.DEBUG)
     formatter = logging.Formatter(
         "%(asctime)s %(levelname)-s %(funcName)s:%(lineno)d %(message)s")
 
     handler_console = logging.StreamHandler()
     handler_console.setFormatter(formatter)
-    handler_console.setLevel(getattr(logging, v_loglevel))
+    handler_console.setLevel(logging.DEBUG)
     logger.addHandler(handler_console)
     unittest.main()
