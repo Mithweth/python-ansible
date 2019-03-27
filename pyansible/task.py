@@ -1,9 +1,10 @@
 import ansible.playbook.play
 from ansible.errors import AnsibleError, AnsibleParserError
 import play
+import ansible.constants as C
 import compat_utils
 import os
-import yaml
+import shutil
 
 
 class Task(play.Play):
@@ -60,6 +61,7 @@ class Task(play.Play):
             self.runtime_errors = e.message
             return False
         success = self._play(play)
+        shutil.rmtree(C.DEFAULT_LOCAL_TMP, True)
         self._tqm.send_callback('v2_playbook_on_stats', self._tqm._stats)
         self._tqm.cleanup()
         return success

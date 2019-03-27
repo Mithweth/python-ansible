@@ -22,7 +22,8 @@ class TestPlaybook(unittest.TestCase):
             pyansible.Playbook()
 
     def test_wrong_vault_file(self):
-        with self.assertRaises(AnsibleFileNotFound):
+        ex = AnsibleFileNotFound if pyansible.version_info < (2, 5) else AnsibleError
+        with self.assertRaises(ex):
             pyansible.Playbook('test.yml', vault_password_file='foobar')
 
     def test_no_ssh_key(self):
@@ -68,7 +69,7 @@ class TestPlaybook(unittest.TestCase):
 
     def test_run_host_file(self):
         t = pyansible.Playbook('toto.yml', inventory='test_host')
-        self.assertIn('test_host', t._tqm._inventory.host_list)
+        self.assertIn('test_host', t._tqm._inventory.hosts)
 
     def test_run_hosts(self):
         t = pyansible.Playbook('toto.yml')
@@ -83,9 +84,10 @@ class TestPlaybook(unittest.TestCase):
         self.assertEqual('smart', t._tqm._options.connection)
 
     def test_wrong_pb(self):
+            msg = 'does not exist' if pyansible.version_info < (2, 5) else 'Could not find or access'
             t = pyansible.Playbook('toto.yml')
             self.assertFalse(t.run())
-            self.assertIn('does not exist', t.runtime_errors)
+            self.assertIn(msg, t.runtime_errors)
 
     def test_run_mock_ok(self):
         m = mock.Mock()

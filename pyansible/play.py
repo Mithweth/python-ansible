@@ -1,11 +1,9 @@
 import compat_utils
 
 from ansible.parsing.dataloader import DataLoader
-from ansible.errors import AnsibleError, AnsibleParserError, AnsibleFileNotFound
+from ansible.errors import AnsibleError, AnsibleParserError
 from ansible.executor.task_queue_manager import TaskQueueManager
-import ansible.constants as C
 import os
-import shutil
 
 
 class Options(object):
@@ -30,7 +28,8 @@ class Play(object):
         if vault_password_file is not None:
             compat_utils.set_vault_password(loader, vault_password_file)
 
-        variable_manager = compat_utils.create_variable_manager(loader, host_file)
+        variable_manager = compat_utils.create_variable_manager(loader,
+                                                                host_file)
 
         if extra_vars:
             variable_manager.extra_vars = extra_vars
@@ -42,7 +41,7 @@ class Play(object):
         if basedir:
             compat_utils.set_basedir(loader, basedir)
 
-        options=Options(
+        options = Options(
             connection=connection,
             become_user=become_user,
             become_method=become_method,
@@ -91,16 +90,14 @@ class Play(object):
         new_play = compat_utils.update_vars(self._tqm, play)
         used_hosts = self._tqm._inventory.get_hosts(new_play.hosts)
         if len(used_hosts) == 0:
-              self._tqm.send_callback('v2_playbook_on_play_start', new_play)
-              self._tqm.send_callback('v2_playbook_on_no_hosts_matched')
-              return False
+            self._tqm.send_callback('v2_playbook_on_play_start', new_play)
+            self._tqm.send_callback('v2_playbook_on_no_hosts_matched')
+            return False
         try:
             self._tqm.run(new_play)
         except (AnsibleError, AnsibleParserError) as e:
             self.runtime_errors = e.message
             return False
-        finally:
-            shutil.rmtree(C.DEFAULT_LOCAL_TMP, True)
         hosts = sorted(self._tqm._stats.processed.keys())
         for h in hosts:
             t = self._tqm._stats.summarize(h)

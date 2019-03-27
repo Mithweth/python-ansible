@@ -3,7 +3,9 @@ from . import version_info
 from ansible.errors import AnsibleError, AnsibleParserError
 import play
 import json
+import ansible.constants as C
 import os
+import shutil
 
 
 class Playbook(play.Play):
@@ -29,8 +31,8 @@ class Playbook(play.Play):
                     os.path.isfile(self._tqm._inventory._sources[0]):
                 inventory = self._tqm._inventory._sources[0]
             else:
-                inventory = ','.join([str(host)
-                    for host in self._tqm._inventory.hosts()]) + ','
+                inventory = ','.join([
+                    str(host) for host in self._tqm._inventory.hosts]) + ','
         opts = "--inventory-file=%s " % inventory
         for key in ('become_method', 'become_user', 'tags', 'forks'):
             if key in self._tqm._options.__dict__:
@@ -66,7 +68,7 @@ class Playbook(play.Play):
             if not self._play(p):
                 success = False
                 break
-
+        shutil.rmtree(C.DEFAULT_LOCAL_TMP, True)
         self._tqm.send_callback('v2_playbook_on_stats', self._tqm._stats)
         self._tqm.cleanup()
         return success

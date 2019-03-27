@@ -34,7 +34,8 @@ class TestTask(unittest.TestCase):
         self.assertIn('tasks', t.play)
 
     def test_wrong_vault_file(self):
-        with self.assertRaises(AnsibleFileNotFound):
+        ex = AnsibleFileNotFound if pyansible.version_info < (2, 5) else AnsibleError
+        with self.assertRaises(ex):
             pyansible.Task({'command': 'ls'}, vault_password_file='foobar')
 
     def test_extra_vars(self):
