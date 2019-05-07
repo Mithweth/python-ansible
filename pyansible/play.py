@@ -92,7 +92,7 @@ class Play(object):
         if len(used_hosts) == 0:
             self._tqm.send_callback('v2_playbook_on_play_start', new_play)
             self._tqm.send_callback('v2_playbook_on_no_hosts_matched')
-            return False
+            return True
         try:
             self._tqm.run(new_play)
         except (AnsibleError, AnsibleParserError) as e:
